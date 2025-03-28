@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVA UI Interface</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="scanlines"></div>
+    <div id="vignette"></div>
+    <div class="eva-ui-container">
+        <!-- Header -->
+        <header class="eva-panel eva-header">
+            <span>// NERV HQ - TACTICAL MONITOR 03 //</span>
+            <span class="right">// MAGI SYSTEM: ONLINE //</span>
+        </header>
+
+        <!-- Main Display -->
+        <main class="eva-main-display">
+            <!-- Left Data Panel -->
+            <section class="eva-panel data-panel left-panel">
+                <div class="panel-title">// UNIT-01 STATUS //</div>
+                <div class="data-item">
+                    <span class="label">[PILOT SYNC]:</span>
+                    <span class="value" id="sync-ratio">---.-%</span>
+                    <span class="status-indicator stable" id="sync-status">STABLE</span>
+                </div>
+                <div class="data-item">
+                    <span class="label">[PLUG DEPTH]:</span>
+                    <span class="value" id="plug-depth">---.- M</span>
+                </div>
+                <div class="data-item">
+                    <span class="label">[A.T. FIELD]:</span>
+                    <span class="value" id="at-field-strength">---%</span>
+                    <span class="status-indicator active" id="at-field-status">ACTIVE</span>
+                </div>
+                 <div class="data-item">
+                    <span class="label">[PWR STATUS]:</span>
+                    <span class="value" id="power-status">UMBILICAL</span>
+                    <span class="time" id="internal-timer">--:--</span>
+                </div>
+                <div class="data-item progress-item">
+                    <span class="label">[INTERNAL BATT]:</span>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="battery-bar"></div>
+                    </div>
+                </div>
+                 <div class="data-item">
+                    <span class="label">[STRUCT DMG]:</span>
+                    <span class="value warning" id="damage-status">NONE</span>
+                </div>
+            </section>
+
+            <!-- Central Visual Area -->
+            <section class="eva-visuals">
+                <div class="sphere-container">
+                     <div class="sphere">
+                        <div class="sphere-highlight"></div>
+                     </div>
+                </div>
+                <canvas id="sine-wave-canvas"></canvas>
+                <div class="target-info">
+                     <span class="label">// TARGET SIGNATURE //</span>
+                     <span class="value warning" id="target-pattern">PATTERN: BLUE</span>
+                     <span class="value" id="target-distance">DIST: ---- M</span>
+                </div>
+            </section>
+
+            <!-- Right Data Panel (Alerts/Comms) -->
+            <section class="eva-panel data-panel right-panel">
+                 <div class="panel-title">// SYSTEM ALERTS //</div>
+                 <div class="alert-log" id="alert-log">
+                    <div class="log-entry time">[TIME]</div>
+                    <div class="log-entry sys">[SYS] BOOT SEQUENCE COMPLETE</div>
+                    <div class="log-entry op">[OP] MONITORING COMMENCED</div>
+                    <!-- Dynamic alerts go here -->
+                 </div>
+                 <div class="panel-title bottom">// COMMS CHANNEL //</div>
+                 <div class="comms-display">
+                     <span class="channel">[CH 01]:</span> <span id="comm-ch1">MISATO K. - STANDBY</span>
+                 </div>
+                 <div class="comms-display">
+                     <span class="channel">[CH 02]:</span> <span id="comm-ch2">RITSUKO A. - ANALYZING</span>
+                 </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="eva-panel eva-footer">
+            <span>// OPERATOR: LT. MAYA IBUKI //</span>
+            <span class="right" id="system-time">// SYS TIME: HH:MM:SS //</span>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

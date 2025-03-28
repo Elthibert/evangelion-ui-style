@@ -1,0 +1,352 @@
+/* Basic Reset & Font Setup */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --eva-bg: #0a0f14; /* Dark blue/black */
+    --eva-border: #4a5568; /* Greyish border */
+    --eva-text: #cdd6f4; /* Light grey/blue text */
+    --eva-green: #66ff66; /* Bright green */
+    --eva-amber: #ffcc00; /* Amber/Orange */
+    --eva-red: #ff3333; /* Bright Red */
+    --eva-blue: #66ccff; /* Light Blue */
+    --eva-highlight: #ffffff;
+
+    --font-primary: 'Roboto Mono', monospace;
+    --font-secondary: 'Orbitron', sans-serif; /* More blocky/display */
+}
+
+body {
+    background-color: var(--eva-bg);
+    color: var(--eva-text);
+    font-family: var(--font-primary);
+    font-size: 12px; /* Smaller base font size */
+    line-height: 1.4;
+    overflow: hidden; /* Prevent scrollbars */
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase; /* Core EVA style */
+}
+
+/* --- Retro Effects --- */
+#scanlines {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    background: linear-gradient(
+        to bottom,
+        rgba(18, 16, 16, 0) 50%,
+        rgba(0, 0, 0, 0.25) 50%
+    );
+    background-size: 100% 4px; /* Adjust line thickness */
+    z-index: 100;
+    animation: scanline-flicker 0.1s infinite alternate;
+}
+
+#vignette {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    box-shadow: inset 0 0 150px 50px rgba(0, 0, 0, 0.6); /* Dark edges */
+    z-index: 99;
+}
+
+@keyframes scanline-flicker {
+    from { opacity: 0.8; }
+    to { opacity: 0.9; }
+}
+
+/* --- Main Container --- */
+.eva-ui-container {
+    width: 95vw;
+    height: 90vh;
+    max-width: 1400px; /* Limit max width */
+    border: 1px solid var(--eva-border);
+    background-color: rgba(15, 20, 30, 0.8); /* Slightly transparent BG */
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    position: relative; /* Needed for potential glitch effects */
+    box-shadow: 0 0 15px rgba(102, 204, 255, 0.2); /* Subtle blue glow */
+    animation: text-flicker 15s infinite linear; /* Subtle overall flicker */
+}
+
+/* --- Panels --- */
+.eva-panel {
+    border: 1px solid var(--eva-border);
+    padding: 5px 10px;
+    margin-bottom: 8px; /* Spacing between rows */
+    position: relative; /* For potential pseudo-elements */
+    background-color: rgba(10, 15, 20, 0.7); /* Darker panel BG */
+}
+
+.eva-header, .eva-footer {
+    font-family: var(--font-secondary);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--eva-blue);
+    display: flex;
+    justify-content: space-between;
+    letter-spacing: 1px;
+}
+.eva-footer {
+    margin-bottom: 0;
+    margin-top: 8px;
+}
+
+.eva-main-display {
+    flex-grow: 1;
+    display: flex;
+    gap: 8px; /* Spacing between columns */
+    margin-bottom: 0;
+    overflow: hidden; /* Prevent content overflow */
+}
+
+.data-panel {
+    flex: 1; /* Equal width initially */
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; /* Allow scrolling if content exceeds height */
+    scrollbar-width: thin;
+    scrollbar-color: var(--eva-border) transparent;
+}
+.left-panel { flex-basis: 30%; }
+.right-panel { flex-basis: 30%; }
+
+.panel-title {
+    font-family: var(--font-secondary);
+    font-weight: 700;
+    color: var(--eva-green);
+    border-bottom: 1px solid var(--eva-border);
+    margin-bottom: 8px;
+    padding-bottom: 3px;
+    text-align: center;
+    letter-spacing: 0.5px;
+}
+.panel-title.bottom {
+    margin-top: auto; /* Push to bottom in flex column */
+    padding-top: 8px;
+    border-top: 1px solid var(--eva-border);
+    border-bottom: none;
+}
+
+
+/* --- Data Items --- */
+.data-item {
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; /* Allow wrapping if needed */
+    gap: 5px;
+}
+
+.data-item .label {
+    color: var(--eva-blue);
+    flex-basis: 45%; /* Allocate space for label */
+    text-align: right;
+    padding-right: 5px;
+    font-size: 11px;
+}
+
+.data-item .value {
+    color: var(--eva-highlight);
+    font-weight: 700;
+    flex-grow: 1; /* Take remaining space */
+    text-align: left;
+}
+
+.data-item .time {
+    color: var(--eva-amber);
+    font-weight: 700;
+}
+
+.status-indicator {
+    font-size: 10px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+.status-indicator.stable { background-color: var(--eva-green); color: var(--eva-bg); }
+.status-indicator.active { background-color: var(--eva-blue); color: var(--eva-bg); }
+.status-indicator.warning { background-color: var(--eva-amber); color: var(--eva-bg); animation: pulse-amber 1s infinite;}
+.status-indicator.critical { background-color: var(--eva-red); color: var(--eva-highlight); animation: pulse-red 0.5s infinite;}
+.value.warning { color: var(--eva-amber); }
+.value.critical { color: var(--eva-red); animation: text-flicker-fast 0.3s infinite; }
+
+/* Progress Bar */
+.progress-item { align-items: center; }
+.progress-bar-container {
+    flex-grow: 1;
+    height: 10px;
+    background-color: #2d3748; /* Dark background for bar */
+    border: 1px solid var(--eva-border);
+    margin-left: 5px;
+    position: relative;
+}
+.progress-bar {
+    height: 100%;
+    width: 100%; /* Default full */
+    background-color: var(--eva-green);
+    transition: width 0.5s ease-out;
+}
+.progress-bar.low { background-color: var(--eva-amber); }
+.progress-bar.critical { background-color: var(--eva-red); }
+
+
+/* --- Central Visuals --- */
+.eva-visuals {
+    flex: 1; /* Take remaining space */
+    flex-basis: 40%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* Center sphere and canvas */
+    position: relative;
+    border: 1px dashed var(--eva-border); /* Dashed border for emphasis */
+    padding: 10px;
+}
+
+.sphere-container {
+    position: relative; /* Positioning context for sphere */
+    width: 120px; /* Size of the sphere area */
+    height: 120px;
+    margin-bottom: 15px; /* Space below sphere */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sphere {
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle at 30% 30%, var(--eva-blue), var(--eva-bg) 70%);
+    border-radius: 50%;
+    border: 1px solid var(--eva-blue);
+    position: relative;
+    box-shadow: 0 0 20px rgba(102, 204, 255, 0.4), inset 0 0 15px rgba(0,0,0,0.5);
+    animation: rotate-sphere 20s linear infinite, pulse-glow 3s infinite alternate;
+}
+
+.sphere-highlight {
+    position: absolute;
+    top: 15px;
+    left: 25px;
+    width: 20px;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    filter: blur(3px);
+    transform: rotate(-30deg);
+}
+
+#sine-wave-canvas {
+    width: 100%;
+    height: 100px; /* Height of the wave display area */
+    /* border: 1px solid var(--eva-border); */
+    position: absolute; /* Overlay on sphere/target info */
+    bottom: 50px; /* Adjust vertical position */
+    left: 0;
+    opacity: 0.7; /* Make waves semi-transparent */
+}
+
+.target-info {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    background: rgba(10, 15, 20, 0.8);
+    padding: 5px 10px;
+    border: 1px solid var(--eva-border);
+    z-index: 10; /* Above canvas */
+}
+.target-info .label { color: var(--eva-red); font-weight: bold; font-family: var(--font-secondary); }
+.target-info .value { color: var(--eva-highlight); font-weight: bold; display: block;}
+
+
+/* --- Right Panel Specifics (Alerts) --- */
+.alert-log {
+    height: 150px; /* Fixed height for log */
+    overflow-y: auto; /* Enable scrolling */
+    border: 1px solid #333;
+    padding: 5px;
+    margin-bottom: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--eva-border) transparent;
+    display: flex; /* Use flexbox for easier bottom-alignment */
+    flex-direction: column-reverse; /* Newest messages at the bottom */
+}
+.log-entry {
+    font-size: 10px;
+    margin-bottom: 2px;
+    font-family: var(--font-primary);
+}
+.log-entry.time { color: var(--eva-amber); }
+.log-entry.sys { color: var(--eva-blue); }
+.log-entry.op { color: var(--eva-green); }
+.log-entry.warning { color: var(--eva-amber); font-weight: bold; }
+.log-entry.critical { color: var(--eva-red); font-weight: bold; animation: text-flicker-fast 0.5s infinite; }
+
+
+.comms-display {
+    font-size: 11px;
+    margin-bottom: 3px;
+}
+.comms-display .channel {
+    color: var(--eva-blue);
+    font-weight: bold;
+}
+
+/* --- Animations & Glitches --- */
+@keyframes text-flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.95; }
+}
+@keyframes text-flicker-fast {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+@keyframes pulse-red {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 5px var(--eva-red); }
+    50% { transform: scale(1.05); box-shadow: 0 0 15px var(--eva-red); }
+}
+@keyframes pulse-amber {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 3px var(--eva-amber); }
+    50% { transform: scale(1.03); box-shadow: 0 0 8px var(--eva-amber); }
+}
+
+@keyframes rotate-sphere {
+    from { transform: rotateY(0deg) rotateX(5deg); }
+    to { transform: rotateY(360deg) rotateX(5deg); }
+}
+@keyframes pulse-glow {
+     from { box-shadow: 0 0 15px rgba(102, 204, 255, 0.3), inset 0 0 10px rgba(0,0,0,0.4); }
+    to { box-shadow: 0 0 30px rgba(102, 204, 255, 0.6), inset 0 0 20px rgba(0,0,0,0.6); }
+}
+
+/* Basic Glitch Placeholder - Can be triggered via JS */
+.glitch {
+    animation: glitch-effect 0.3s infinite;
+}
+
+@keyframes glitch-effect {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); text-shadow: 2px 0 var(--eva-red), -2px 0 var(--eva-green);}
+  40% { transform: translate(-2px, -2px); text-shadow: -2px 0 var(--eva-red), 2px 0 var(--eva-green);}
+  60% { transform: translate(2px, 2px); text-shadow: 2px 0 var(--eva-red), -2px 0 var(--eva-green);}
+  80% { transform: translate(2px, -2px); text-shadow: -2px 0 var(--eva-red), 2px 0 var(--eva-green);}
+  100% { transform: translate(0); }
+}
