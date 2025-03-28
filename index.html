@@ -3,97 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EVA UI Interface</title>
+    <title>NERV Interface - Sphere Analysis</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="scanlines"></div>
     <div id="vignette"></div>
-    <div class="eva-ui-container">
+
+    <div class="nerv-ui-container">
         <!-- Header -->
-        <header class="eva-panel eva-header">
-            <span>// NERV HQ - TACTICAL MONITOR 03 //</span>
-            <span class="right">// MAGI SYSTEM: ONLINE //</span>
+        <header class="nerv-panel nerv-header">
+            <div class="logo">
+                <span class="logo-triangle">▲</span> NERV
+            </div>
+            <div class="system-status">SYSTEM STATUS: <span id="sys-status-value">NORMAL</span></div>
+            <div class="timer" id="t-minus-timer">T-MINUS 24:09:39</div>
         </header>
 
         <!-- Main Display -->
-        <main class="eva-main-display">
-            <!-- Left Data Panel -->
-            <section class="eva-panel data-panel left-panel">
-                <div class="panel-title">// UNIT-01 STATUS //</div>
-                <div class="data-item">
-                    <span class="label">[PILOT SYNC]:</span>
-                    <span class="value" id="sync-ratio">---.-%</span>
-                    <span class="status-indicator stable" id="sync-status">STABLE</span>
+        <main class="nerv-main-display">
+            <!-- Left Visual Area -->
+            <section class="visual-area">
+                <div id="sphere-container">
+                    <!-- Three.js Canvas will be injected here -->
                 </div>
-                <div class="data-item">
-                    <span class="label">[PLUG DEPTH]:</span>
-                    <span class="value" id="plug-depth">---.- M</span>
-                </div>
-                <div class="data-item">
-                    <span class="label">[A.T. FIELD]:</span>
-                    <span class="value" id="at-field-strength">---%</span>
-                    <span class="status-indicator active" id="at-field-status">ACTIVE</span>
-                </div>
-                 <div class="data-item">
-                    <span class="label">[PWR STATUS]:</span>
-                    <span class="value" id="power-status">UMBILICAL</span>
-                    <span class="time" id="internal-timer">--:--</span>
-                </div>
-                <div class="data-item progress-item">
-                    <span class="label">[INTERNAL BATT]:</span>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" id="battery-bar"></div>
+                <div class="reticle reticle-horizontal"></div>
+                <div class="reticle reticle-vertical"></div>
+                <div class="reticle reticle-circle-outer"></div>
+                <div class="reticle reticle-circle-inner"></div>
+                <div class="reticle-label label-top">N</div>
+                <div class="reticle-label label-bottom">S</div>
+                <div class="reticle-label label-left">W</div>
+                <div class="reticle-label label-right">E</div>
+            </section>
+
+            <!-- Right Data Area -->
+            <section class="data-area">
+                <!-- Sphere Analysis Panel -->
+                <div class="nerv-panel data-panel" id="sphere-analysis">
+                    <div class="panel-title">// SPHERE ANALYSIS //</div>
+                    <div class="analysis-grid">
+                        <span class="label">RADIUS:</span><span class="value" id="sphere-radius">---.- M</span>
+                        <span class="label">DENSITY:</span><span class="value" id="sphere-density">-.-- G/CM³</span>
+                        <span class="label">TEMP:</span><span class="value" id="sphere-temp">--.- °C</span>
+                        <span class="label">MASS:</span><span class="value" id="sphere-mass">---.- KG</span>
+                        <span class="label">PATTERN:</span><span class="value" id="sphere-pattern">------</span>
+                        <span class="label">ROTATION:</span><span class="value" id="sphere-rotation">-.- °/S</span>
+                    </div>
+                     <div class="progress-bar-container temp-bar-container">
+                        <div class="progress-bar" id="temp-bar"></div>
+                    </div>
+                    <div class="warning-message" id="energy-warning">
+                        <!-- Warning text injected by JS -->
                     </div>
                 </div>
-                 <div class="data-item">
-                    <span class="label">[STRUCT DMG]:</span>
-                    <span class="value warning" id="damage-status">NONE</span>
-                </div>
-            </section>
 
-            <!-- Central Visual Area -->
-            <section class="eva-visuals">
-                <div class="sphere-container">
-                     <div class="sphere">
-                        <div class="sphere-highlight"></div>
-                     </div>
+                <!-- Configuration Panel -->
+                <div class="nerv-panel data-panel" id="configuration">
+                    <div class="panel-title">// CONFIGURATION //</div>
+                    <div class="hex-icons-container">
+                        <div class="hex-icon" id="hex1"></div>
+                        <div class="hex-icon active" id="hex2"></div>
+                        <div class="hex-icon" id="hex3"></div>
+                        <div class="hex-icon" id="hex4"></div>
+                        <div class="hex-icon" id="hex5"></div>
+                    </div>
+                    <div class="config-grid">
+                         <span class="label">SYNC:</span><span class="value" id="sync-value">--.-%</span>
+                         <span class="label">HARMONIC:</span><span class="value status normal" id="harmonic-status">------</span>
+                         <span class="label">WAVE:</span><span class="value" id="wave-pattern">------</span>
+                         <span class="label">MODE:</span><span class="value status observation" id="system-mode">------</span>
+                    </div>
                 </div>
-                <canvas id="sine-wave-canvas"></canvas>
-                <div class="target-info">
-                     <span class="label">// TARGET SIGNATURE //</span>
-                     <span class="value warning" id="target-pattern">PATTERN: BLUE</span>
-                     <span class="value" id="target-distance">DIST: ---- M</span>
-                </div>
-            </section>
 
-            <!-- Right Data Panel (Alerts/Comms) -->
-            <section class="eva-panel data-panel right-panel">
-                 <div class="panel-title">// SYSTEM ALERTS //</div>
-                 <div class="alert-log" id="alert-log">
-                    <div class="log-entry time">[TIME]</div>
-                    <div class="log-entry sys">[SYS] BOOT SEQUENCE COMPLETE</div>
-                    <div class="log-entry op">[OP] MONITORING COMMENCED</div>
-                    <!-- Dynamic alerts go here -->
-                 </div>
-                 <div class="panel-title bottom">// COMMS CHANNEL //</div>
-                 <div class="comms-display">
-                     <span class="channel">[CH 01]:</span> <span id="comm-ch1">MISATO K. - STANDBY</span>
-                 </div>
-                 <div class="comms-display">
-                     <span class="channel">[CH 02]:</span> <span id="comm-ch2">RITSUKO A. - ANALYZING</span>
-                 </div>
+                <!-- MAGI Analysis Panel -->
+                <div class="nerv-panel data-panel" id="magi-analysis">
+                    <div class="panel-title">// MAGI ANALYSIS //</div>
+                    <div class="magi-grid">
+                        <span class="label">MELCHIOR:</span><span class="value status confirmed" id="magi-melchior">------</span>
+                        <span class="label">BALTHASAR:</span><span class="value status confirmed" id="magi-balthasar">------</span>
+                        <span class="label">CASPER:</span><span class="value status analyzing" id="magi-casper">------</span>
+                    </div>
+                </div>
             </section>
         </main>
 
         <!-- Footer -->
-        <footer class="eva-panel eva-footer">
-            <span>// OPERATOR: LT. MAYA IBUKI //</span>
-            <span class="right" id="system-time">// SYS TIME: HH:MM:SS //</span>
+        <footer class="nerv-panel nerv-footer">
+            <span>NERV></span><span class="command-input" id="command-input">ANALYZE SPHERE COMPOSITION_</span>
         </footer>
     </div>
 
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
