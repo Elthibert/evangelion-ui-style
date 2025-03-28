@@ -1,247 +1,204 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Element References ---
-    const syncRatioEl = document.getElementById('sync-ratio');
-    const syncStatusEl = document.getElementById('sync-status');
-    const plugDepthEl = document.getElementById('plug-depth');
-    const atFieldStrengthEl = document.getElementById('at-field-strength');
-    const atFieldStatusEl = document.getElementById('at-field-status');
-    const powerStatusEl = document.getElementById('power-status');
-    const internalTimerEl = document.getElementById('internal-timer');
-    const batteryBarEl = document.getElementById('battery-bar');
-    const damageStatusEl = document.getElementById('damage-status');
-    const targetPatternEl = document.getElementById('target-pattern');
-    const targetDistanceEl = document.getElementById('target-distance');
-    const alertLogEl = document.getElementById('alert-log');
-    const commCh1El = document.getElementById('comm-ch1');
-    const commCh2El = document.getElementById('comm-ch2');
-    const systemTimeEl = document.getElementById('system-time');
-    const canvas = document.getElementById('sine-wave-canvas');
-    const ctx = canvas.getContext('2d');
+    const sysStatusValueEl = document.getElementById('sys-status-value');
+    const tMinusTimerEl = document.getElementById('t-minus-timer');
+    const sphereContainer = document.getElementById('sphere-container');
+    const sphereRadiusEl = document.getElementById('sphere-radius');
+    const sphereDensityEl = document.getElementById('sphere-density');
+    const sphereTempEl = document.getElementById('sphere-temp');
+    const sphereMassEl = document.getElementById('sphere-mass');
+    const spherePatternEl = document.getElementById('sphere-pattern');
+    const sphereRotationEl = document.getElementById('sphere-rotation');
+    const tempBarEl = document.getElementById('temp-bar');
+    const energyWarningEl = document.getElementById('energy-warning');
+    const hexIcons = document.querySelectorAll('.hex-icon');
+    const syncValueEl = document.getElementById('sync-value');
+    const harmonicStatusEl = document.getElementById('harmonic-status');
+    const wavePatternEl = document.getElementById('wave-pattern');
+    const systemModeEl = document.getElementById('system-mode');
+    const magiMelchiorEl = document.getElementById('magi-melchior');
+    const magiBalthasarEl = document.getElementById('magi-balthasar');
+    const magiCasperEl = document.getElementById('magi-casper');
+    const commandInputEl = document.getElementById('command-input'); // Command Input Span
 
     // --- State Variables ---
-    let syncRatio = 88.7;
-    let plugDepth = 145.8;
-    let atFieldStrength = 95;
-    let batteryLevel = 100; // Percentage
-    let internalPowerActive = false;
-    let internalTimeRemaining = 5 * 60; // 5 minutes in seconds
-    let targetDistance = 1200;
-    let time = 0; // For wave animation
+    let tMinusSeconds = 24 * 3600 + 9 * 60 + 39; // T-Minus time from reference
+    let sphereRadius = 2.35;
+    let sphereDensity = 5.67;
+    let sphereTemp = 26.8;
+    let sphereMass = 189.4;
+    let sphereRotation = 8.7;
+    let syncValue = 84.3;
+    let energyWarningActive = false;
+    const magiStates = ['CONFIRMED', 'ANALYZING...', 'REJECTED'];
+    let casperStateIndex = 1; // Start as Analyzing
 
-    // --- Canvas Setup ---
-    let canvasWidth, canvasHeight;
-    function resizeCanvas() {
-        canvasWidth = canvas.clientWidth;
-        canvasHeight = canvas.clientHeight;
-        canvas.width = canvasWidth; // Set actual drawing resolution
-        canvas.height = canvasHeight;
+    // --- Three.js Setup ---
+    let scene, camera, renderer, sphereMesh;
+
+    function initThreeJS() {
+        scene = new THREE.Scene();
+
+        // Camera
+        const aspect = sphereContainer.clientWidth / sphereContainer.clientHeight;
+        camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
+        camera.position.z = 2.5;
+
+        // Renderer
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); // Alpha for transparent bg
+        renderer.setSize(sphereContainer.clientWidth, sphereContainer.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio); // Adjust for high DPI screens
+        sphereContainer.appendChild(renderer.domElement);
+
+        // Geometry & Material
+        const geometry = new THREE.SphereGeometry(1.5, 32, 32); // Radius, width segments, height segments
+        const material = new THREE.MeshBasicMaterial({
+            color: 0x00ffff, // --eva-cyan
+            wireframe: true
+        });
+
+        // Mesh
+        sphereMesh = new THREE.Mesh(geometry, material);
+        scene.add(sphereMesh);
+
+        // Handle Resize
+        window.addEventListener('resize', onWindowResize, false);
     }
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas); // Adjust on window resize
 
+    function onWindowResize() {
+        if (!renderer || !camera || !sphereContainer) return; // Check if initialized
+        const width = sphereContainer.clientWidth;
+        const height = sphereContainer.clientHeight;
 
-    // --- Sine Wave & Glitch Drawing ---
-    function drawWaves() {
-        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-        ctx.lineWidth = 1.5;
-        const centerY = canvasHeight / 2;
-        const amplitude1 = canvasHeight * 0.2;
-        const frequency1 = 0.03;
-        const speed1 = 0.05;
-        const amplitude2 = canvasHeight * 0.15;
-        const frequency2 = 0.05;
-        const speed2 = -0.07; // Move opposite direction
-
-        // Wave 1 (Greenish)
-        ctx.strokeStyle = 'rgba(102, 255, 102, 0.8)'; // --eva-green with alpha
-        ctx.beginPath();
-        for (let x = 0; x < canvasWidth; x++) {
-            const y = centerY + amplitude1 * Math.sin(x * frequency1 + time * speed1);
-            if (x === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-        }
-        ctx.stroke();
-
-        // Wave 2 (Blueish)
-        ctx.strokeStyle = 'rgba(102, 204, 255, 0.7)'; // --eva-blue with alpha
-        ctx.beginPath();
-        for (let x = 0; x < canvasWidth; x++) {
-            const y = centerY + amplitude2 * Math.sin(x * frequency2 + time * speed2 + 1); // Add phase shift
-            if (x === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-        }
-        ctx.stroke();
-
-        // Retro/Glitch Effect (Subtle & Random)
-        if (Math.random() < 0.03) { // Low probability glitch
-            const glitchAmount = Math.random() * 4 - 2; // Small horizontal shift
-            ctx.globalCompositeOperation = 'difference'; // Glitchy color effect
-            ctx.fillStyle = `rgba(${Math.random()*255}, ${Math.random()*255}, ${Math.random()*255}, 0.1)`;
-            ctx.fillRect(glitchAmount, 0, canvasWidth, canvasHeight);
-            ctx.globalCompositeOperation = 'source-over'; // Reset composite mode
-
-            // Draw thin horizontal glitch lines
-             ctx.fillStyle = `rgba(${Math.random()*100 + 155}, ${Math.random()*100 + 155}, ${Math.random()*100 + 155}, 0.3)`;
-             for(let i=0; i< 3; i++){
-                ctx.fillRect(0, Math.random() * canvasHeight, canvasWidth, Math.random() * 2 + 1);
-             }
-        }
-
-        time += 0.5; // Increment time for animation
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height);
     }
 
 
     // --- Update Functions ---
+    function updateTimer() {
+        if (tMinusSeconds <= 0) {
+            tMinusTimerEl.textContent = "T-MINUS 00:00:00";
+            return;
+        }
+        tMinusSeconds--;
+        const hours = Math.floor(tMinusSeconds / 3600);
+        const minutes = Math.floor((tMinusSeconds % 3600) / 60);
+        const seconds = tMinusSeconds % 60;
+        tMinusTimerEl.textContent = `T-MINUS ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
     function updateData() {
-        // Simulate fluctuations
-        syncRatio += (Math.random() - 0.5) * 0.5;
-        syncRatio = Math.max(0, Math.min(100, syncRatio)); // Clamp between 0-100
-        plugDepth += (Math.random() - 0.5) * 0.2;
-        atFieldStrength = Math.max(0, Math.min(100, Math.floor(atFieldStrength + (Math.random() - 0.4) * 1)));
+        // Simulate Sphere Data Fluctuation
+        sphereRadius += (Math.random() - 0.5) * 0.02;
+        sphereDensity += (Math.random() - 0.5) * 0.05;
+        sphereTemp += (Math.random() - 0.5) * 0.3;
+        sphereMass += (Math.random() - 0.5) * 0.2;
+        sphereRotation += (Math.random() - 0.5) * 0.1;
+        syncValue += (Math.random() - 0.45) * 0.3; // Tend to increase slightly
+        syncValue = Math.min(100, Math.max(0, syncValue)); // Clamp 0-100
 
-        // Target movement
-        targetDistance -= Math.random() * 15;
-        targetDistance = Math.max(0, targetDistance);
+        // Update DOM - Sphere Analysis
+        sphereRadiusEl.textContent = `${sphereRadius.toFixed(2)} M`;
+        sphereDensityEl.textContent = `${sphereDensity.toFixed(2)} G/CM³`;
+        sphereTempEl.textContent = `${sphereTemp.toFixed(1)} °C`;
+        sphereMassEl.textContent = `${sphereMass.toFixed(1)} KG`;
+        spherePatternEl.textContent = "BLUE"; // Static from ref
+        sphereRotationEl.textContent = `${sphereRotation.toFixed(1)} °/S`;
 
-        // Power Status & Battery Drain
-        if (internalPowerActive) {
-             internalTimeRemaining -= 1; // Decrease by 1 second
-             if (internalTimeRemaining < 0) internalTimeRemaining = 0;
-             batteryLevel = (internalTimeRemaining / (5 * 60)) * 100;
-        } else {
-            // Recharge slowly if on umbilical (or just stay full)
-            batteryLevel = Math.min(100, batteryLevel + 0.1);
-            // For demo, let's randomly switch to internal power
-            if (Math.random() < 0.01) { // 1% chance per second to switch
-                switchToInternalPower();
+        // Update Temp Bar (0-50 °C range mapped to 0-100%)
+        const tempPercentage = Math.min(100, Math.max(0, (sphereTemp / 50) * 100));
+        tempBarEl.style.width = `${tempPercentage}%`;
+        tempBarEl.className = `progress-bar ${sphereTemp > 35 ? 'high-temp' : ''}`;
+
+        // Update Energy Warning (Random Trigger)
+        if (!energyWarningActive && Math.random() < 0.05) { // 5% chance to trigger
+            energyWarningActive = true;
+            energyWarningEl.textContent = "WARNING: UNUSUAL ENERGY SIGNATURE DETECTED";
+        } else if (energyWarningActive && Math.random() < 0.02) { // 2% chance to clear
+             energyWarningActive = false;
+             energyWarningEl.textContent = "";
+        }
+
+        // Update Configuration Panel
+        syncValueEl.textContent = `${syncValue.toFixed(1)}%`;
+        harmonicStatusEl.textContent = "NORMAL"; // Static from ref
+        wavePatternEl.textContent = "PATTERN-A"; // Static from ref
+        systemModeEl.textContent = "OBSERVATION"; // Static from ref
+
+        // Simulate Hex Icon Activity (simple blink/toggle)
+        hexIcons.forEach((icon, index) => {
+            if (Math.random() < 0.05) { // Low chance to toggle active state
+                icon.classList.toggle('active');
+            } else if (icon.classList.contains('active') && Math.random() < 0.02) {
+                 // Slightly higher chance for active icons to pulse brighter (CSS handles pulse)
             }
+        });
+
+
+        // Update MAGI Analysis
+        magiMelchiorEl.textContent = "CONFIRMED"; // Static from ref
+        magiBalthasarEl.textContent = "CONFIRMED"; // Static from ref
+
+        // Cycle Casper's state
+        if (Math.random() < 0.1) { // 10% chance to change state per update
+             casperStateIndex = (casperStateIndex + 1) % magiStates.length;
+             magiCasperEl.textContent = magiStates[casperStateIndex];
+             magiCasperEl.className = `value status ${magiStates[casperStateIndex].toLowerCase().replace('.','').replace('.','').replace('.','')}`; // Update class for styling
         }
 
-        // Update DOM Elements
-        syncRatioEl.textContent = `${syncRatio.toFixed(1)}%`;
-        plugDepthEl.textContent = `${plugDepth.toFixed(1)} M`;
-        atFieldStrengthEl.textContent = `${atFieldStrength}%`;
-        targetDistanceEl.textContent = `DIST: ${Math.floor(targetDistance)} M`;
-
-        // Update Status Indicators based on values
-        updateSyncStatus(syncRatio);
-        updateATFieldStatus(atFieldStrength);
-        updateBatteryDisplay(batteryLevel);
-        updateTimerDisplay();
-
-         // Simulate random damage alerts
-        if (Math.random() < 0.02) { // 2% chance per second
-            const damages = ["LEFT ARM", "RIGHT LEG", "HEAD UNIT", "CHEST PLATE"];
-            const severities = ["MINOR", "MODERATE", "SEVERE", "CRITICAL"];
-            const randomDamage = damages[Math.floor(Math.random() * damages.length)];
-            const randomSeverity = severities[Math.floor(Math.random() * severities.length)];
-            damageStatusEl.textContent = `${randomDamage} - ${randomSeverity}`;
-            damageStatusEl.className = `value ${randomSeverity.toLowerCase()}`; // Add class for color
-            addLogEntry(`DAMAGE DETECTED: ${damageStatusEl.textContent}`, 'warning');
-        }
-
-        // Simulate comms chatter
-        if (Math.random() < 0.1) {
-             const comms = ["Analyzing pattern...", "Hold position.", "Roger.", "Energy levels?", "Watch out!"];
-             commCh1El.textContent = `MISATO K. - ${comms[Math.floor(Math.random()*comms.length)]}`;
-        }
-         if (Math.random() < 0.08) {
-             const comms = ["Data inconclusive.", "Running diagnostics.", "Cross-referencing MAGI.", "Possible interference.", "Confirmed."];
-             commCh2El.textContent = `RITSUKO A. - ${comms[Math.floor(Math.random()*comms.length)]}`;
-        }
+         // Update System Status (Sometimes goes WARNING)
+         if (Math.random() < 0.01) {
+             sysStatusValueEl.textContent = 'WARNING';
+             sysStatusValueEl.style.color = 'var(--eva-amber)';
+         } else if (sysStatusValueEl.textContent === 'WARNING' && Math.random() < 0.1) {
+              sysStatusValueEl.textContent = 'NORMAL';
+              sysStatusValueEl.style.color = 'var(--eva-green)';
+         }
     }
 
-    function updateSyncStatus(value) {
-        let status = 'STABLE';
-        let className = 'stable';
-        if (value < 40) { status = 'CRITICAL'; className = 'critical'; }
-        else if (value < 70) { status = 'WARNING'; className = 'warning'; }
-        syncStatusEl.textContent = status;
-        syncStatusEl.className = `status-indicator ${className}`;
+     // Simple Command Input Simulation (typing effect)
+    let commandText = "ANALYZE SPHERE COMPOSITION";
+    let currentCommandLength = commandText.length;
+    let commandTypingInterval;
+
+    function simulateCommandInput() {
+        commandTypingInterval = setInterval(() => {
+            if (currentCommandLength > 0 && Math.random() < 0.3) { // Chance to backspace
+                currentCommandLength--;
+            } else if (currentCommandLength < commandText.length && Math.random() < 0.7) { // Chance to type forward
+                currentCommandLength++;
+            }
+            commandInputEl.textContent = commandText.substring(0, currentCommandLength) + '_';
+        }, 250); // Adjust speed of typing simulation
     }
 
-     function updateATFieldStatus(value) {
-        let status = 'ACTIVE';
-        let className = 'active';
-        if (value === 0) { status = 'OFFLINE'; className = 'critical'; }
-        else if (value < 50) { status = 'FLUCTUATING'; className = 'warning'; }
-        atFieldStatusEl.textContent = status;
-        atFieldStatusEl.className = `status-indicator ${className}`;
-    }
-
-    function updateBatteryDisplay(level) {
-        batteryBarEl.style.width = `${level}%`;
-        let className = 'progress-bar';
-        if (level < 20) className += ' critical';
-        else if (level < 50) className += ' low';
-        batteryBarEl.className = className;
-    }
-
-    function updateTimerDisplay() {
-        if (internalPowerActive) {
-            const minutes = Math.floor(internalTimeRemaining / 60);
-            const seconds = internalTimeRemaining % 60;
-            internalTimerEl.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            internalTimerEl.style.display = 'inline'; // Show timer
-            internalTimerEl.style.color = internalTimeRemaining < 60 ? 'var(--eva-red)' : 'var(--eva-amber)'; // Red when low
-        } else {
-            internalTimerEl.style.display = 'none'; // Hide timer
-        }
-    }
-
-    function switchToInternalPower() {
-        if (!internalPowerActive) {
-             internalPowerActive = true;
-             internalTimeRemaining = 5 * 60; // Reset timer
-             powerStatusEl.textContent = 'INTERNAL';
-             powerStatusEl.classList.add('warning'); // Make text amber
-             addLogEntry('UMBILICAL CABLE SEVERED - SWITCHING TO INTERNAL POWER', 'critical');
-        }
-    }
-
-    function addLogEntry(message, type = 'sys') {
-        const timestamp = new Date().toLocaleTimeString('en-GB'); // HH:MM:SS format
-        const entry = document.createElement('div');
-        entry.className = `log-entry ${type}`; // type can be 'sys', 'op', 'warning', 'critical'
-        entry.textContent = `[${timestamp}] ${message}`;
-
-        // Insert at the top (which visually appears at the bottom due to flex-direction: column-reverse)
-        alertLogEl.insertBefore(entry, alertLogEl.firstChild);
-
-        // Limit log entries (optional)
-        if (alertLogEl.children.length > 50) {
-            alertLogEl.removeChild(alertLogEl.lastChild);
-        }
-    }
-
-    function updateSystemTime() {
-        systemTimeEl.textContent = `// SYS TIME: ${new Date().toLocaleTimeString('en-GB')} //`;
-    }
 
     // --- Animation Loop ---
     function animate() {
-        drawWaves();
         requestAnimationFrame(animate);
+
+        // Rotate Sphere
+        if (sphereMesh) {
+            sphereMesh.rotation.x += 0.001;
+            sphereMesh.rotation.y += 0.003; // Slightly faster Y rotation
+        }
+
+        // Render Scene
+        if (renderer && scene && camera) {
+            renderer.render(scene, camera);
+        }
     }
 
     // --- Initial Setup & Intervals ---
-    updateSystemTime();
+    initThreeJS(); // Initialize Three.js scene
+    updateTimer(); // Initial timer display
     updateData(); // Initial data population
-    addLogEntry("MAGI SYSTEM KERNEL ONLINE", 'sys');
-    addLogEntry("TACTICAL DISPLAY INITIALIZED", 'op');
+    simulateCommandInput(); // Start command input simulation
 
-    setInterval(updateData, 1000); // Update data every second
-    setInterval(updateSystemTime, 1000); // Update clock every second
+    setInterval(updateTimer, 1000); // Update timer every second
+    setInterval(updateData, 800); // Update data slightly faster than timer
 
-    // Trigger a glitch effect occasionally on the whole container
-    // setInterval(() => {
-    //     const container = document.querySelector('.eva-ui-container');
-    //     if (Math.random() < 0.1) {
-    //          container.classList.add('glitch');
-    //          setTimeout(() => container.classList.remove('glitch'), 150); // Glitch duration
-    //     }
-    // }, 3000);
-
-
-    animate(); // Start the wave animation loop
+    animate(); // Start the Three.js animation loop
 });
